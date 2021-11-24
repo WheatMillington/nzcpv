@@ -1,5 +1,4 @@
-package nzcpv
-
+//*
 import (
 	"crypto/sha256"
 	"encoding/base32"
@@ -12,32 +11,33 @@ import (
 
 	"github.com/fxamacker/cbor/v2"
 )
+*//
+	
+struct Token{
+	string KeyID;
+	int Algorithm;
+	string Issuer;
+	time.Time NotBefore;
+	time.Time Expires;
+	string JTI;
+	VerifiableCredential VerifiableCredential;
+	[]byte Signature;
 
-type Token struct {
-	KeyID                string
-	Algorithm            int
-	Issuer               string
-	NotBefore            time.Time
-	Expires              time.Time
-	JTI                  string
-	VerifiableCredential VerifiableCredential
-	Signature            []byte
-
-	cti    []byte
-	digest []byte
+	[]byte cti;
+	[]byte digest;
 }
 
-type VerifiableCredential struct {
-	Context           []string          `cbor:"@context"`
-	Version           string            `cbor:"version"`
-	Type              []string          `cbor:"type"`
-	CredentialSubject CredentialSubject `cbor:"credentialSubject"`
+struct VerifiableCredential {
+	[]string Context; //`cbor:"@context"`
+	string Version; //`cbor:"version"`
+	[]string Type; //`cbor:"type"`
+	CredentialSubject CredentialSubject; //`cbor:"credentialSubject"`
 }
 
-type CredentialSubject struct {
-	GivenName  string `cbor:"givenName"`
-	FamilyName string `cbor:"familyName"`
-	DOB        string `cbor:"dob"`
+struct CredentialSubject {
+	string GivenName; //`cbor:"givenName"`
+	string FamilyName; //`cbor:"familyName"`
+	string DOB; //`cbor:"dob"`
 }
 
 var (
@@ -56,8 +56,8 @@ var (
 // This is so that the data in the QR code can be displayed whether the token
 // is valid or not. Use t.Valid() to validate.
 func NewToken(qr string) (*Token, error) {
-	if !strings.HasPrefix(qr, "NZCP:/") {
-		return nil, ErrMissingNZCPPrefix
+	if (!strings.HasPrefix(qr, "NZCP:/")) {
+		return nil, ErrMissingNZCPPrefix;
 	}
 
 	parts := strings.Split(qr, "/")
