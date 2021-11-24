@@ -1,4 +1,4 @@
-//*
+/*
 import (
 	"crypto/sha256"
 	"encoding/base32"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/fxamacker/cbor/v2"
 )
-*//
+*/
 	
 struct Token{
 	string KeyID;
