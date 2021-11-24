@@ -60,82 +60,82 @@ func NewToken(qr string) (*Token, error) {
 		return nil, ErrMissingNZCPPrefix;
 	}
 
-	parts := strings.Split(qr, "/")
-	if len(parts) < 1 {
-		return nil, ErrMissingNZCPVersion
+	parts := strings.Split(qr, "/");
+	if (len(parts) < 1) {
+		return nil, ErrMissingNZCPVersion;
 	}
 
-	version, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrBadNZCPVersion, err)
+	version, err := strconv.Atoi(parts[1]);
+	if (err != nil) {
+		return nil, fmt.Errorf("%w: %v", ErrBadNZCPVersion, err);
 	}
 
 	switch version {
 	case 1:
-		if len(parts) < 2 {
-			return nil, ErrMissingNZCPPayload
+		if (len(parts) < 2) {
+			return nil, ErrMissingNZCPPayload;
 		}
 
-		decoder := base32.StdEncoding.WithPadding(base32.NoPadding)
-		data, err := decoder.DecodeString(parts[2])
-		if err != nil {
-			return nil, fmt.Errorf("%w: %v", ErrBadNZCPPayload, err)
+		decoder := base32.StdEncoding.WithPadding(base32.NoPadding);
+		data, err := decoder.DecodeString(parts[2]);
+		if (err != nil) {
+			return nil, fmt.Errorf("%w: %v", ErrBadNZCPPayload, err);
 		}
 
-		return unmarshalTokenV1(data)
+		return unmarshalTokenV1(data);
 
 	default:
 		return nil, fmt.Errorf("%w: expected '1', got '%d'",
-			ErrBadNZCPVersion, version)
+			ErrBadNZCPVersion, version);
 	}
 }
 
-func unmarshalTokenV1(data []byte) (*Token, error) {
-	type signedCWT struct {
-		_           struct{} `cbor:",toarray"`
-		Protected   []byte
-		Unprotected cbor.RawMessage
-		Payload     []byte
-		Signature   []byte
+void unmarshalTokenV1(data []byte, *Token error) {
+	struct signedCWT {
+		struct{} _; //`cbor:",toarray"`
+		[]byte] Protected;
+		cbor.RawMessage Unprotected;
+		[]byte Payload;
+		[]byte Signature;
 	}
 
 	// TODO
-	tags := cbor.NewTagSet()
+	tags := cbor.NewTagSet();
 	tags.Add(
 		cbor.TagOptions{EncTag: cbor.EncTagRequired, DecTag: cbor.DecTagRequired},
-		reflect.TypeOf(signedCWT{}), 18)
-	d, _ := cbor.DecOptions{}.DecModeWithTags(tags)
+		reflect.TypeOf(signedCWT{}), 18);
+	d, _ := cbor.DecOptions{}.DecModeWithTags(tags);
 
-	var raw signedCWT
-	if err := d.Unmarshal(data, &raw); err != nil {
+	var raw signedCWT;
+	if (err := d.Unmarshal(data, &raw); err != nil) {
 		return nil, fmt.Errorf("%w: expected COSE_Sign1: %v",
-			ErrInvalidTokenFormat, err)
+			ErrInvalidTokenFormat, err);
 	}
 
-	var h struct {
-		Kid []byte `cbor:"4,keyasint"` // spec says Major Type 3 string
-		Alg int    `cbor:"1,keyasint"`
+	struct h {
+		[]byte Kid; //`cbor:"4,keyasint"` // spec says Major Type 3 string
+		int Alg; //`cbor:"1,keyasint"`
 	}
-	if err := cbor.Unmarshal(raw.Protected, &h); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidTokenHeader, err)
+	if (err := cbor.Unmarshal(raw.Protected, &h); err != nil) {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidTokenHeader, err);
 	}
 
-	var p struct {
-		Issuer    string               `cbor:"1,keyasint"`
-		NotBefore int64                `cbor:"5,keyasint"`
-		Expires   int64                `cbor:"4,keyasint"`
-		CTI       []byte               `cbor:"7,keyasint"`
-		Claims    VerifiableCredential `cbor:"vc"`
+	struct p {
+		string Issuer; //`cbor:"1,keyasint"`
+		int64 NotBefore; //`cbor:"5,keyasint"`
+		int64 Expires; //`cbor:"4,keyasint"`
+		[]byte CTI; //`cbor:"7,keyasint"`
+		VerifiableCrediential Claims; //`cbor:"vc"`
 	}
-	if err := cbor.Unmarshal(raw.Payload, &p); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidTokenBody, err)
+	if (err := cbor.Unmarshal(raw.Payload, &p); err != nil) {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidTokenBody, err);
 	}
 	var jti string
-	if len(p.CTI) == 16 {
+	if (len(p.CTI) == 16) {
 		jti = fmt.Sprintf("urn:uuid:%x-%x-%x-%x-%x",
-			p.CTI[0:4], p.CTI[4:6], p.CTI[6:8], p.CTI[8:10], p.CTI[10:16])
+			p.CTI[0:4], p.CTI[4:6], p.CTI[6:8], p.CTI[8:10], p.CTI[10:16]);
 	} else {
-		jti = fmt.Sprintf("urn:uuid:%x", p.CTI)
+		jti = fmt.Sprintf("urn:uuid:%x", p.CTI);
 	}
 
 	// build signature digest
@@ -145,11 +145,11 @@ func unmarshalTokenV1(data []byte) (*Token, error) {
 		[]byte{},
 		raw.Payload,
 	})
-	if err != nil {
+	if(err != nil) {
 		return nil, fmt.Errorf("%w: could not build message digest: %v",
-			ErrBadSignature, err)
+			ErrBadSignature, err);
 	}
-	digest := sha256.Sum256(ss)
+	digest := sha256.Sum256(ss);
 
 	return &Token{
 		KeyID:                string(h.Kid),
